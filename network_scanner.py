@@ -1,40 +1,38 @@
-import scapy.all as scapy
+import socket
+import subprocess
+from datetime import datetime
 
 
-def scan(ip):
-    # scapy.arping(ip)
-    arp_request = scapy.ARP(pdst=ip)
-    # arp_request.show()
-    # print(arp_request.summary())
-    # scapy.ls(scapy.ARP())
-    broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
-    # broadcast.show()
-    # scapy.ls(scapy.Ether()) # list all the options which set
-    # print(broadcast.summary())
+subprocess.call('clear', shell=True)
 
-    # combine both the packet.
-    arp_request_broadcast = broadcast / arp_request
-    # arp_request_broadcast.show()
-    # print(arp_request_broadcast.summary())
 
-    #  sending packet and receiving the response.
+target = input("Enter the target IP address or hostname: ")
 
-    # answered, unanswered = scapy.srp(arp_request_broadcast, timeout=1)
-    answered = scapy.srp(arp_request_broadcast, timeout=1)[0]
-    #  srp function sending and recieving packet of the client which have an same network.
 
-    # print(answered.summary())
-    # print(unanswered.summary())
+def port_scan(target):
+    try:
+   
+        ip = socket.gethostbyname(target)
 
-    print("IP\t\t\tMAC ADDRESS\n---------------------------------------------------------")
 
-    for element in answered:
-        # print(element[1].show()) # 
-        # print(element[1].psrc) # it provide the ip address.
-        # print(element[1].hwsrc) # it provide the mac address.
-        # print("---------------------------------------------------------------------------")
+        print("-" * 50)
+        print("Scanning target:", ip)
+        print("Time started:", datetime.now())
+        print("-" * 50)
 
-        print(element[1].psrc + "\t\t" + element[1].hwsrc )
+        for port in range(1, 65635):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)  # Set a timeout for the connection attempt
+            result = sock.connect_ex((ip, port))
+            if result == 0:
+                print("Port {}: Open".format(port))
+            sock.close()
 
-# router_ip = input("Enter our router ip : ")
-scan("192.168.1.1/24")
+    except socket.gaierror:
+        print("Hostname could not be resolved.")
+
+    except socket.error:
+        print("Could not connect to the server.")
+
+
+port_scan(target)
